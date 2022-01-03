@@ -12,19 +12,23 @@ int main() {
 	cout << l.getXmin() << " " << l.getXmax() << endl;
 	cout << l.length() << endl;
 	*/
+	auto p1 = make_shared<Point>(0,0,10);
+	auto p2 = make_shared<Point>(0,19,20);
+	auto p3 = make_shared<Point>(59,0,30);
+	auto p4 = make_shared<Point>(59,19,40);
 
+	Scene s;
+	s.addObject(p1);
+	s.addObject(p2);
+	s.addObject(p3);
+	s.addObject(p4);
+
+	// def draw depth
+	stringstream ss0;
+	ss0 << s;
+	cout<<ss0.str();
 	
-	Point p(1,2);
-	Circle c(p,3);
 
-	if(c.contains(p)){
-		cout<< " it contains";
-	}
-	else {
-		cout<< " it does not contain";
-	}
-
-	
 /*p2.translate(0,2);
 	Rectangle r(p1,p2);
 	r.rotate();

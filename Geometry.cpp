@@ -23,7 +23,7 @@ bool Shape::setDepth(int d) {
 	return true; // dummy
 }
 
-int Shape::getDepth() const {
+int Shape::getDepth() const {	
 	// IMPLEMENT ME
 	return d_; // dummy
 }
@@ -45,9 +45,13 @@ void Shape::rotate() {
 
 void Shape::scale(float f) {
 	// IMPLEMENT ME
+	if(f<=0){
+		throw std::invalid_argument("scale is wrong");
+	}
 }
 
-bool Shape::contains(const Point& p) const {
+//bool Shape::contains(const Point& p)
+bool Shape::contains(Point p) {
 	// IMPLEMENT ME
 	if((p.getX() == x_)&&(p.getY()==y_)){
 		return true;
@@ -59,6 +63,7 @@ bool Shape::contains(const Point& p) const {
 
 Point::Point(float x, float y, int d) : Shape(d){
 	// IMPLEMENT ME
+	d_ = d;
 	 x_ = x;
 	 y_ = y; 
 	 dim_ = 0;
@@ -74,11 +79,29 @@ float Point::getY() const {
 	return y_; // dummy
 }
 
+void Point::rotate() {
+	// IMPLEMENT ME
+}
+
+bool Point::contains(Point p) {
+	// IMPLEMENT ME
+ if((p.getX() == getX())&&(p.getY()==getY())){
+	 return true;
+ }
+ return false;
+}
+
 // =========== LineSegment class ==============
 
 LineSegment::LineSegment(const Point& p, const Point& q): Shape(p.getDepth()), p_(p), q_(q) {
 	// IMPLEMENT ME
 	dim_ = 1;
+	bool sameCod = ((p_.getX()==q_.getX())&&(p_.getY()==q_.getY()));
+	bool sameDepth = (p_.getDepth() == q_.getDepth());
+	bool axisAligned = ((p_.getX()==q_.getX())||(p_.getY()==q_.getY()));
+	if(sameCod||!sameDepth||!axisAligned){
+		throw std::invalid_argument("invalid points");
+	}
 }
 
 float LineSegment::getXmin() const {
@@ -157,24 +180,25 @@ void LineSegment::rotate(){
 }
 
 bool LineSegment::contains(Point p){
-	if(getYmax() == getYmin()){
-		for(int i = getXmin(); i<= getXmax(); i++){
-			if((p.getY() == getYmax())&&(p.getX()==i)){
-				return true;
-			}
+	if((getYmax() == getYmin())&&(p.getY()==getYmin())){
+		bool xbound = (p.getX()<=getXmax())&&(p.getX()>=getXmin());
+		if(xbound){
+			return true;
 		}			
 	}
 	else{
-		for(int i = getYmin(); i<= getYmax(); i++){
-			if((p.getX() == getXmax())&&(p.getY()==i)){
+		bool ybound = (p.getY()<=getYmax())&&(p.getY()>=getYmin());
+			if(ybound&&(p.getX()==getXmin())){
 				return true;
 			}
-		}
 	}
 	return false;
 }
 
 void LineSegment::scale(float f){
+	 	if(f<=0){
+		throw std::invalid_argument("scale is wrong");
+	}
 	 f = (length()*(f-1))/2;
 	if(getYmax() == getYmin()){
 		if(p_.getX()>q_.getX()){
@@ -219,6 +243,13 @@ float TwoDShape::area() const {
 
 Rectangle::Rectangle(const Point& p, const Point& q): TwoDShape(p.getDepth()), p_(p),q_(q) {
 	// IMPLEMENT ME
+	bool sameCod = ((p_.getX()==q_.getX())&&(p_.getY()==q_.getY()));
+	bool sameDepth = (p_.getDepth() == q_.getDepth());
+	bool axisAligned = ((p_.getX()==q_.getX())||(p_.getY()==q_.getY()));
+	if(sameCod||!sameDepth||axisAligned){
+		throw std::invalid_argument("invalid points");
+	}
+
 	Point px1 = Point(getXmax(),getYmin());
 	Point px2 = Point(getXmin(),getYmin());
 	Point py1 = Point(getXmin(),getYmax());
@@ -259,12 +290,11 @@ float Rectangle::getYmax() const {
 	return p_.getY();// dummy
 }
 bool Rectangle::contains(Point p){
-	for(int i = getXmin(); i<=getXmax(); i++){
-		for(int j = getYmin(); j<=getYmax(); j++){
-			if((p.getX()==i)&&(p.getY()==j)){
-				return true;
-			}
-		}
+
+	bool xbound = (p.getX()<=getXmax())&&(p.getX()>=getXmin());
+	bool ybound = (p.getY()<=getYmax())&&(p.getY()>=getYmin());
+	if( xbound && ybound){
+		return true;
 	}
 	return false;
 }
@@ -275,6 +305,10 @@ void Rectangle::translate(float x, float y){
 }
 
 void Rectangle::scale(float f){
+		if(f<=0){
+		throw std::invalid_argument("scale is wrong");
+	}
+
 	Point px1 = Point(getXmax(),getYmin());
 	Point px2 = Point(getXmin(),getYmin());
 	Point py1 = Point(getXmin(),getYmax());
@@ -328,21 +362,18 @@ void Rectangle::rotate(){
 	//edithb
 }
 
-/*float Rectangle::area(){
-	Point px1 = Point(getXmax(),getYmin());
-	Point px2 = Point(getXmin(),getYmin());
-	Point py1 = Point(getXmin(),getYmax());
-	Point py2 = Point(getXmin(),getYmin());
-	LineSegment horizon = LineSegment(px1,px2);
-	LineSegment vertical = LineSegment(py1,py2);
-	float answer = horizon.length()*vertical.length();
+float Rectangle::area(){
+	float answer = length_ * height_;
 	return answer;
-}*/
+}
 
 // ================== Circle class ===================
 
 Circle::Circle(const Point& c, float r) :TwoDShape(c.getDepth()), c_(c), r_(r) {
 	// IMPLEMENT ME
+	if(r<=0){
+		throw std::invalid_argument("raduis is invalid");
+	}
 	length_ = r_;
 	height_ = PI*r;
 }
@@ -363,8 +394,8 @@ float Circle::getR() const {
 }
 
 bool Circle::contains(Point p){
-	LineSegment radi = LineSegment(c_,p);
-	if(radi.length()<=r_){
+	float radi = sqrt(pow((c_.getX() - p.getX()),2)+ pow((c_.getY() - p.getY()),2));
+	if(radi<=r_){
 		return true;
 	}
 	return false;
@@ -379,14 +410,18 @@ void Circle::translate(float x, float y){
 }
 
 void Circle::scale(float f){
+		if(f<=0){
+		throw std::invalid_argument("scale is wrong");
+	}
+
 	r_ *= f;
 
 }
 
-/*float Circle::area(){
-	float answer = (r_*r_)*PI;
+float Circle::area(){
+	float answer = length_ * height_;
 	return answer;
-}*/
+}
 
 // ================= Scene class ===================
 
@@ -396,13 +431,61 @@ Scene::Scene() {
 
 void Scene::addObject(std::shared_ptr<Shape> ptr) {
 	// IMPLEMENT ME
+	ptr_ .push_back(ptr);
 }
 
 void Scene::setDrawDepth(int depth) {
 	// IMPLEMENT ME
+	for(auto i = ptr_.begin(); i!=ptr_.end(); ++i){
+		if((*i)->getDepth()>depth){
+			ptr_.erase(i);
+			i--;
+		}
+	}
 }
 
-std::ostream& operator<<(std::ostream& out, const Scene& s) {
+std::ostream& operator<<(std::ostream& out, const Scene& s){
 	// IMPLEMENT ME
+	vector<shared_ptr<Shape>> ptr = s.ptr_;
+			for(float j=19; j>=0; j--){
+				for(float k=0; k<60; k++){
+					bool contain = false;
+					Point p = Point(k,j);
+					for(auto i:ptr){
+						if(i->contains(p)){
+							contain = true;
+						}
+					}			
+					if(contain){
+							out<<'*';
+						}
+					else{
+							out<<' ';
+					}
+				}
+			out<<'\n';
+			}
+
+			/*
+						for(float j=19; j>=0; j--){
+				for(float k=0; k<60; k++){
+					bool contain = false;
+					Point p = Point(k,j);
+					for(auto i:ptr){
+						if(i->contains(p)){
+							contain = true;
+						}
+					}			
+					if(contain){
+							out<<'*';
+						}
+					else{
+							out<<' ';
+					}
+				}
+			out<<'\n';
+			}
+			*/
+	
 	return out;
 }

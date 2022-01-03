@@ -3,6 +3,10 @@
 
 #include <iostream>
 #include <memory>
+#include <vector>
+#include <bits/stdc++.h>
+#include <unordered_map>
+using namespace std;
 
 class Point; // forward declaration
 
@@ -19,27 +23,28 @@ public:
 
 	// Set depth of object to d. If d is negative, return false and
 	// do not update depth. Otherwise return true
-	bool setDepth(int d);
+	virtual bool setDepth(int d);
 
 	// Return the depth of object
 	int getDepth() const;
+	
 
 	// Return the dimension of the object (0, 1 or 2)
 	int dim() const;
 
 	// Translate the object horizontally by x and vertically by y
-	void translate(float x, float y);
+	virtual void translate(float x, float y);
 
 	// Rotate the object 90 degrees around its centre
-	virtual void rotate();
+	virtual void rotate()= 0;
 
 	// Scale the object by a factor f relative to its centre.
 	// If f is zero or negative, throw a std::invalid-argument exception.
 	virtual void scale(float f);
 
 	// Return true if the object contains p and false otherwise.
-	// Depths are ignored for purpose of comparison
-	virtual bool contains(const Point& p) const;
+	//bool contains(const Point& p) const;
+	virtual bool contains(Point p) ;
 
 	// the constant pi
 	static constexpr double PI = 3.1415926;
@@ -64,12 +69,14 @@ public:
 	// Return basic information (see assignment page)
 	float getX() const;
 	float getY() const;
+	virtual void rotate(); 
+	virtual bool contains(Point p); 
 
 private:
 	// add any member variables you need
+	
 
 };
-
 class LineSegment : public Shape {
 
 public:
@@ -137,6 +144,7 @@ public:
 	void rotate();
 	bool contains(Point p);
 	void scale(float f);
+	float area();
 	
 
 private:
@@ -162,6 +170,7 @@ public:
 	void rotate();
 	bool contains(Point p);
 	void scale(float f);
+	float area();
 	
 
 private:
@@ -179,7 +188,6 @@ public:
 
 	// Add the pointer to the collection of pointers stored
 	void addObject(std::shared_ptr<Shape> ptr);
-
 	// Set the drawing depth to d
 	void setDrawDepth(int d);
 
@@ -189,6 +197,7 @@ public:
 
 private:
 	// add any member variables you need
+	vector<shared_ptr<Shape>> ptr_;
 
 	// Draw objects as specified in the assignment page
 friend std::ostream& operator<<(std::ostream& out, const Scene& s);
